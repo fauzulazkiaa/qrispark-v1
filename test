@@ -666,26 +666,3 @@
       userBtn.setAttribute("aria-expanded", "false");
     }
   });
-
-  /* -----------------------------
-     INIT
-  ----------------------------- */
-  function init(){
-    // Default: pada layar kecil, sembunyikan sidebar
-    if (window.innerWidth < 900){
-      document.body.classList.add("sidebar-hidden");
-    }
-    // Render rute awal (dari hash bila ada)
-    const initialRoute = (location.hash || "#dashboard").replace("#","");
-    go(initialRoute);
-  }
-
-  window.addEventListener("resize", ()=>{
-    // Tidak mengubah state pada resize, biar user yang kontrol via tombol.
-  });
-
-  init();
-})();
-</script>
-</body>
-</html>
