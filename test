@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dishub Parkir — Admin Dashboard</title>
+<style>
+  :root{
+    --bg: #0f172a;               /* slate-900 */
+    --bg-soft:#0b1229;           /* darker blend */
+    --card:#0b1229;
+    --muted:#94a3b8;             /* slate-400 */
+    --text:#e5e7eb;              /* gray-200 */
+    --text-strong:#ffffff;
+    --primary:#2563eb;           /* blue-600 (nuansa Dishub) */
+    --primary-600:#1d4ed8;       /* blue-700 */
+    --accent:#22c55e;            /* green-500 */
+    --warn:#f59e0b;              /* amber-500 */
+    --danger:#ef4444;            /* red-500 */
+    --border:#1f2a44;            /* custom line */
+    --radius:14px;
+    --shadow:0 10px 30px rgba(0,0,0,.25);
+    --sidebar-w: 240px; 
+    --header-h: 64px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background: radial-gradient(1200px 800px at 20% -10%, rgba(37,99,235,.18), transparent 60%),
+                radial-gradient(1000px 700px at 120% 10%, rgba(34,197,94,.15), transparent 55%),
+                linear-gradient(180deg, var(--bg-soft), var(--bg));
+    color:var(--text);
+    font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    display:flex;
+    min-height:100dvh;
+  }
+
+  /* Layout */
+  .app{
+    display:flex;
+    width:100%;
+    gap:0;
+  }
+
+  aside.sidebar{
+    width:var(--sidebar-w);
+    min-width:var(--sidebar-w);
+    background: linear-gradient(180deg, rgba(15,23,42,.9), rgba(11,18,41,.95));
+    border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+  }
+
+  .sidebar__brand{
+    padding:18px 18px 14px 18px;
+    border-bottom:1px solid var(--border);
+  }
+  .brand-badge{
+    display:flex; align-items:center; gap:12px;
+  }
+  .brand-logo{
+    width:38px; height:38px; border-radius:10px;
+    background: conic-gradient(from 210deg, var(--primary), #38bdf8, var(--primary));
+    display:grid; place-items:center;
+    display:flex; /* Use flexbox for centering image */
+    align-items:center;
+    justify-content:center;
+    box-shadow: inset 0 0 14px rgba(0,0,0,.25), 0 10px 24px rgba(37,99,235,.25);
+    /* font-weight:800; color:white; -- Removed as it's an image */
+  }
+  .brand-logo img { max-width: 90%; max-height: 90%; object-fit: contain; border-radius: inherit; }
+  .brand-text{
+    display:flex; flex-direction:column;
+  }
+  .brand-text b{ color:var(--text-strong); letter-spacing:.2px}
+  .brand-text small{ color:var(--muted); font-size:12px}
+
+  nav.sidebar__nav{
+    padding:10px;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .nav-btn{
+    width:100%;
+    text-align:left;
+    display:flex; align-items:center; gap:12px;
+    padding:10px 12px;
+    border-radius:10px;
+    color:var(--text);
+    background:transparent;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:.15s ease;
+    letter-spacing:.2px;
+  }
+  .nav-btn:hover{
+    background: rgba(37,99,235,.08);
+    border-color: rgba(37,99,235,.25);
+  }
+  .nav-btn[data-active="true"]{
+    background: linear-gradient(180deg, rgba(37,99,235,.18), rgba(37,99,235,.10));
+    border-color: rgba(37,99,235,.45);
+    box-shadow: inset 0 0 0 1px rgba(37,99,235,.25), 0 4px 18px rgba(37,99,235,.18);
+  }
+  .nav-ic{
+    width:20px; height:20px; display:grid; place-items:center;
+    font-weight:700; color:#93c5fd;
+  }
+
+  main.main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+
+  header.appbar{
+    height:var(--header-h);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 16px;
+    border-bottom:1px solid var(--border);
+    backdrop-filter: blur(6px);
+    position:sticky; top:0; z-index:5;
+  }
+
+  .menu-btn{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:8px 12px;
+    border-radius:10px;
+    background: linear-gradient(180deg, rgba(148,163,184,.15), rgba(148,163,184,.08));
+    border:1px solid rgba(148,163,184,.25);
+    color:var(--text);
+    cursor:pointer;
+  }
+  .menu-btn:hover{
+    background: linear-gradient(180deg, rgba(148,163,184,.25), rgba(148,163,184,.12));
+  }
+  .user-badge{
+    position:relative;
+  }
+  .user-badge-btn{
+    display:flex; align-items:center; gap:10px;
+    padding:8px 10px; border-radius:999px;
+    background: linear-gradient(180deg, rgba(37,99,235,.15), rgba(37,99,235,.08));
+    border:1px solid rgba(37,99,235,.35);
+    color:var(--text);
+    cursor:pointer;
+    transition:.15s ease;
+  }
+  .user-badge-btn:hover{
+    background: linear-gradient(180deg, rgba(37,99,235,.25), rgba(37,99,235,.15));
+  }
+  .user-menu{
+    position:absolute; top:calc(100% + 8px); right:0;
+    background: #1e293b; border:1px solid var(--border);
+    border-radius:12px; padding:6px; min-width:160px;
+    box-shadow:var(--shadow); z-index:10;
+  }
+  .user-menu.hidden{ display:none; }
+  .user-menu-btn{ width:100%; text-align:left; padding:8px 10px; border-radius:8px; background:transparent; border:none; color:var(--text); cursor:pointer; }
+  .user-menu-btn:hover{ background:rgba(37,99,235,.15); } 
+  .user-avatar{
+    width:28px; height:28px; border-radius:50%;
+    background: linear-gradient(180deg, #60a5fa, #2563eb);
+    display:grid; place-items:center; color:white; font-weight:700;
+  }
+
+  section.page{
+    padding:18px;
+  }
+
+  /* Cards & grids */
+  .kpi-grid{
+    display:grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap:14px;
+  }
+  .kpi{
+    grid-column: span 12 / span 12;
+    background: linear-gradient(180deg, rgba(11,18,41,.9), rgba(11,18,41,.95));
+    border:1px solid var(--border);
+    border-radius: var(--radius);
+    padding:16px;
+    box-shadow: var(--shadow);
+  }
+  .kpi h3{
+    margin:0 0 8px; font-size:13px; color:var(--muted); font-weight:600; letter-spacing:.3px
+  }
+  .kpi .kpi-value{
+    font-size:26px; font-weight:800; color:var(--text-strong); letter-spacing:.3px
+  }
+  .kpi .trend{
+    margin-top:8px; font-size:12px;
+  }
+  .trend.up{ color:var(--accent)}
+  .trend.down{ color:var(--danger)}
+  .top-officer{ display:flex; align-items:center; gap:12px; margin-top:8px; }
+  .top-officer-avatar{ width:40px; height:40px; border-radius:50%; background:var(--primary); display:grid; place-items:center; font-weight:700; }
+  .top-officer-info b{ display:block; color:var(--text-strong); }
+  .top-officer-info small{ color:var(--accent); font-weight:600; }
+
+
+
+  /* Simple table */
+  .card{
+    background: linear-gradient(180deg, rgba(11,18,41,.9), rgba(11,18,41,.95));
+    border:1px solid var(--border);
+    border-radius: var(--radius);
+    padding:16px;
+    box-shadow: var(--shadow);
+  }
+  .card h2{
+    margin:0 0 12px; font-size:18px; letter-spacing:.2px
+  }
+
+  .table{
+    width:100%;
+    border-collapse: collapse;
+    overflow:auto;
+    border:1px solid var(--border);
+    border-radius:12px;
+  }
+  .table th,.table td{
+    padding:10px 12px; border-bottom:1px solid var(--border); text-align:left;
+  }
+  .table th{
+    font-size:12px; color:#a7b0c2; background:rgba(148,163,184,.06)
+  }
+  .table tr:hover td{
+    background: rgba(37,99,235,.06);
+  }
+  .status-pill{
+    display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid transparent;
+  }
+  .ok{ color:#22c55e; border-color:rgba(34,197,94,.35); background:rgba(34,197,94,.08)}
+  .idle{ color:#f59e0b; border-color:rgba(245,158,11,.35); background:rgba(245,158,11,.08)}
+
+  /* Active route title */
+  .page h1{
+    margin:0 0 12px; font-size:22px; letter-spacing:.2px
+  }
+  .subtle{
+    color:var(--muted); font-size:13px; margin-bottom:16px
+  }
+
+  /* Sidebar hidden state */
+  body.sidebar-hidden aside.sidebar{ width:0; min-width:0; overflow:hidden; border-right:none }
+  body.sidebar-hidden .sidebar__brand,
+  body.sidebar-hidden nav.sidebar__nav{ display:none }
+  body.sidebar-hidden .app{ gap:0 }
+
+  /* Responsive */
+  @media (min-width: 680px){
+    .kpi{ grid-column: span 6 / span 6 }
+  }
+  @media (min-width: 980px){
+    .kpi{ grid-column: span 3 / span 3 }
+  }
+  @media (max-width: 900px){
+    /* Small screens: hide sidebar by default (JS will toggle) */
+    body:not(.sidebar-hidden) .menu-btn::after{
+      content: "  (Tap untuk sembunyikan)";
+      font-size:11px; color:var(--muted);
+    }
+  }
+
+  /* Focus styles for accessibility */
+  .nav-btn:focus, .menu-btn:focus{
+    outline:2px solid #60a5fa;
+    outline-offset:2px;
+  }
+
+  /* Tiny helper for placeholders */
+  .placeholder{
+    padding:14px; border:1px dashed var(--border); border-radius:12px; color:var(--muted)
+  }
+
+  /* Footer hint */
+  .foot-hint{
+    margin-top:18px; color:var(--muted); font-size:12px
+  }
+
+  .chart-container{
+    position:relative; height:280px;
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Menu samping">
+      <div class="sidebar__brand">
+        <div class="brand-badge">
+          <div class="brand-logo">
+            <img src="Database/logo Qrispark.PNG" alt="QRISPARK Logo">
+          </div>
+          <div class="brand-text">
+            <b>QRISPARK</b>
+            <small>Admin Panel</small>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar__nav" id="nav">
+        <button class="nav-btn" data-route="dashboard" data-active="true"><span class="nav-ic">🏠</span> Dashboard</button>
+        <button class="nav-btn" data-route="petugas"><span class="nav-ic">👮</span> Petugas</button>
+        <button class="nav-btn" data-route="lokasi"><span class="nav-ic">📍</span> Lokasi</button>
+        <button class="nav-btn" data-route="outlet"><span class="nav-ic">🏧</span> Outlet QRIS</button>
+        <button class="nav-btn" data-route="transaksi"><span class="nav-ic">💳</span> Transaksi</button>
+        <button class="nav-btn" data-route="laporan"><span class="nav-ic">📈</span> Laporan</button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="appbar" role="banner">
+        <button class="menu-btn" id="menuBtn" aria-label="Toggle sidebar" title="Menu">
+          <span aria-hidden="true">☰</span> Menu
+        </button>
+        <div class="user-badge">
+          <button class="user-badge-btn" id="userBtn" aria-haspopup="true" aria-expanded="false">
+            <div class="user-avatar" aria-hidden="true">UA</div>
+            <span>User Admin</span>
+          </button>
+          <div class="user-menu hidden" id="userMenu" role="menu">
+            <button class="user-menu-btn" role="menuitem">Logout</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="page" id="page-content" role="region" aria-live="polite">
+        <!-- Konten akan diisi via JS (default: Dashboard) -->
+      </section>
+    </main>
+  </div>
+
+<script>
+(function(){
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  const page = $("#page-content");
+  const nav = $("#nav");
+  const menuBtn = $("#menuBtn");
+  const userBtn = $("#userBtn");
+  const userMenu = $("#userMenu");
+  let chartInstance = null; // Variabel untuk menyimpan instance chart
+
+  /* -----------------------------
+     HELPER: Ambil data transaksi baru dari URL
+  ----------------------------- */
+  function getNewTransactionFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('new_tx') === 'true') {
+        const now = new Date();
+        const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const location = params.get('location') || 'N/A';
+        const vehicleType = params.get('vehicle') || 'N/A';
+        const merchantName = params.get('merchant') || 'N/A';
+        const amount = parseInt(params.get('amount'), 10) || 0;
+
+        return {
+            html: `
+              <tr>
+                <td>${time}</td><td>${location}</td><td>${vehicleType}</td><td>Rp ${amount.toLocaleString('id-ID')}</td><td>${merchantName}</td>
+             </tr>
+            `,
+            isNew: true,
+            amount: amount,
+            count: 1
+        };
+    }
+    return { html: '', isNew: false, amount: 0, count: 0 }; // Kembalikan objek kosong jika tidak ada transaksi baru
+  }
+  /* -----------------------------
+     ROUTER SEDERHANA (SIMULASI)
+  ----------------------------- */
+  const routes = {
+    dashboard(){
+      document.title = "Dashboard — Dishub Parkir";
+      const newTransaction = getNewTransactionFromURL();
+
+      let currentMonthlyRevenue = 41100000; // Initial hardcoded value
+      let currentDailyTransactions = 1284; // Initial hardcoded value
+
+      let newTransactionHtml = '';
+
+      if (newTransaction.isNew) {
+          currentMonthlyRevenue += newTransaction.amount;
+          currentDailyTransactions += newTransaction.count;
+          newTransactionHtml = newTransaction.html;
+      }
+
+      page.innerHTML = `
+        <h1>Dashboard</h1>
+        <div class="subtle">Ringkasan metrik utama untuk sistem parkir & pembayaran QRIS.</div>
+
+        <div class="kpi-grid">
+          <div class="kpi">
+            <h3>Pendapatan Bulan Ini (Est.)</h3>
+            <div class="kpi-value">Rp ${currentMonthlyRevenue.toLocaleString('id-ID')}</div>
+            <div class="trend up">▲ +12.4% vs. bulan lalu</div>
+          </div>
+          <div class="kpi">
+            <h3>Transaksi Hari Ini</h3>
+            <div class="kpi-value">${currentDailyTransactions.toLocaleString('id-ID')}</div>
+            <div class="trend up">▲ +4.1% vs. kemarin</div>
+          </div>
+          <div class="kpi">
+            <h3>Petugas Aktif</h3>
+            <div class="kpi-value">87 / 95</div>
+            <div class="trend down">▼ -2 orang dibanding shift sebelumnya</div>
+          </div>
+          <div class="kpi">
+            <h3>Petugas Terbaik Hari Ini</h3>
+            <div class="top-officer">
+              <div class="top-officer-avatar">RZ</div>
+              <div class="top-officer-info">
+                <b>Rizal</b>
+                <small>Rp 275.000</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-grid" style="margin-top:14px">
+          <div class="kpi" style="grid-column: span 12 / span 12; lg:grid-column: span 7 / span 7;">
+            <h2>Pendapatan Mingguan</h2>
+            <div class="chart-container">
+              <canvas id="revenueChart"></canvas>
+            </div>
+          </div>
+          <div class="kpi" style="grid-column: span 12 / span 12; lg:grid-column: span 5 / span 5;">
+            <h2>Transaksi Terbaru</h2>
+            <div style="overflow:auto; max-height:280px;">
+              <table class="table">
+                <!-- Transaksi baru dari URL akan ditempatkan di sini -->
+                ${newTransactionHtml}
+
+                <thead>
+                  <tr><th>Waktu</th><th>Lokasi</th><th>Jenis Kendaraan</th><th>Jumlah</th><th>Merchant</th></tr>
+                </thead>
+                <tbody>
+                  ${Array.from({length: 10}).map((_, i) => {
+                    const locations = ["Jl. Pocut Baren", "Kompelma Darusalam", "Istana Kado", "Pasar Aceh", "Pasar Rukoh", "Jl. Teuku Umar"];
+                    const isMotor = i % 3 !== 0; // Membuat mobil lebih jarang muncul
+                    const vehicleType = isMotor ? 'Motor' : 'Mobil';
+                    const amount = isMotor ? 1000 : 2000;
+                    const time = `${10 + i}:0${(i*3)%10}`;
+                    const merchantName = "Default Merchant"; // Nama merchant default
+                    return `
+                      <tr>
+                        <td>${time}</td>
+                        <td>${locations[i % locations.length]}</td>
+                        <td>${vehicleType}</td>
+                        <td>Rp ${amount.toLocaleString('id-ID')}</td><td>${merchantName}</td>
+                      </tr>
+                    `
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+      // Render chart setelah HTML di-inject
+      setTimeout(renderRevenueChart, 0);
+    },
+
+    destroyChart(){
+      if(chartInstance){
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+    },
+
+    petugas(){
+      document.title = "Manajemen Petugas — Dishub Parkir";
+      page.innerHTML = `
+        <h1>Manajemen Petugas</h1>
+        <div class="subtle">Kelola data & status kehadiran petugas lapangan.</div>
+
+        <div class="card">
+          <h2>Daftar Petugas (Placeholder)</h2>
+          <div style="overflow:auto">
+            <table class="table" role="table" aria-label="Tabel Petugas">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nama</th>
+                  <th>Lokasi Tugas</th>
+                  <th>Shift</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="petugas-tbody">
+                ${Array.from({length:8}).map((_,i)=>{
+                  const id = String(1001+i);
+                  const shifts = ["Pagi","Siang","Malam"];
+                  const shift = shifts[i%3];
+                  const status = (i%4===0) ? `<span class="status-pill idle">Izin</span>` : `<span class="status-pill ok">Aktif</span>`;                  
+                  const lokasi = ["Jl. Pocut Baren", "Kompelma Darusalam", "Istana Kado Masjid Raya", "Jl. muhammad jam", "Pasar Aceh", "Pasar Rukoh", "Jl. Sri Safiatuddin", "Jl. Teuku Umar"][i%8];
+                  const nama = ["Rizal","Sari","Budi","Dina","Agus","Lina","Tono","Wulan"][i%8];
+                  return `
+                    <tr>
+                      <td>#${id}</td>
+                      <td>${nama}</td>
+                      <td>${lokasi}</td>
+                      <td>${shift}</td>
+                      <td>${status}</td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    },
+
+    lokasi(){
+      document.title = "Manajemen Lokasi — Dishub Parkir";
+      page.innerHTML = `
+        <h1>Manajemen Lokasi</h1>
+        <div class="subtle">Tambahkan, ubah, atau nonaktifkan titik lokasi parkir.</div>
+        <div class="card">
+          <h2>Lokasi (Placeholder)</h2>
+          <div class="placeholder">
+            Daftar lokasi & peta pratinjau akan ditampilkan di sini. Implementasi CRUD bisa ditambahkan sesuai kebutuhan.
+          </div>
+        </div>
+      `;
+    },
+
+    outlet(){
+      document.title = "Outlet QRIS — Dishub Parkir";
+      page.innerHTML = `
+        <h1>Outlet QRIS</h1>
+        <div class="subtle">Kelola outlet & QR code pembayaran per lokasi/pos.</div>
+        <div class="card">
+          <h2>Outlet (Placeholder)</h2>
+          <div class="placeholder">
+            Tabel outlet QRIS & status verifikasi akan ditampilkan di sini.
+          </div>
+        </div>
+      `;
+    },
+
+    transaksi(){
+      document.title = "Transaksi — Dishub Parkir";
+      page.innerHTML = `
+        <h1>Transaksi</h1>
+        <div class="subtle">Pantau transaksi masuk secara real-time & lakukan rekonsiliasi.</div>
+        <div class="card">
+          <h2>Ringkasan (Placeholder)</h2>
+          <div class="placeholder">
+            Filter tanggal, lokasi, dan metode pembayaran dapat ditempatkan di sini.
+          </div>
+        </div>
+      `;
+    },
+
+    laporan(){
+      document.title = "Laporan — Dishub Parkir";
+      page.innerHTML = `
+        <h1>Laporan</h1>
+        <div class="subtle">Generate laporan keuangan, operasional, dan performa petugas.</div>
+        <div class="card">
+          <h2>Generator Laporan (Placeholder)</h2>
+          <div class="placeholder">
+            Form pembuatan laporan (PDF/CSV) dapat ditambahkan di sini.
+          </div>
+        </div>
+      `;
+    }
+  };
+
+  function renderRevenueChart(){
+    const ctx = document.getElementById('revenueChart');
+    if (!ctx) return;
+
+    routes.destroyChart(); // Hancurkan chart lama jika ada
+
+    chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+            datasets: [{
+                label: 'Pendapatan (Juta Rp)',
+                data: [4.5, 5.2, 4.8, 6.5, 5.0, 7.3, 7.8],
+                backgroundColor: 'rgba(37, 99, 235, 0.6)',
+                borderColor: 'rgba(37, 99, 235, 1)',
+                borderWidth: 1,
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                    ticks: { color: '#94a3b8', callback: (value) => `Rp ${value} Jt` }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#94a3b8' }
+                }
+            }
+        }
+    });
+  }
+
+  function setActive(route){
+    $$(".nav-btn", nav).forEach(btn=>{
+      const active = btn.getAttribute("data-route")===route ? "true":"false";
+      btn.setAttribute("data-active", active);
+      btn.setAttribute("aria-current", active==="true" ? "page" : "false");
+    });
+  }
+
+  function go(route){
+    routes.destroyChart(); // Pastikan chart lama dihancurkan sebelum pindah halaman
+    const fn = routes[route] || routes.dashboard;
+    fn();
+    setActive(route);
+    // Hapus query string dari URL setelah data diproses untuk mencegah duplikasi saat refresh
+    if (history.replaceState) {
+        history.replaceState({route}, "", "#"+route);
+    }
+    history.replaceState({route}, "", "#"+route); // hash untuk bookmark sederhana
+  }
+
+  /* -----------------------------
+     EVENT: NAV CLICK
+  ----------------------------- */
+  nav.addEventListener("click", (e)=>{
+    const btn = e.target.closest(".nav-btn");
+    if(!btn) return;
+    const route = btn.getAttribute("data-route");
+    go(route);
+  });
+
+  /* -----------------------------
+     TOGGLE SIDEBAR
+  ----------------------------- */
+  menuBtn.addEventListener("click", ()=>{
+    document.body.classList.toggle("sidebar-hidden");
+  });
+
+  /* -----------------------------
+     TOGGLE USER MENU
+  ----------------------------- */
+  userBtn.addEventListener("click", (e)=>{
+    e.stopPropagation();
+    userMenu.classList.toggle("hidden");
+    userBtn.setAttribute("aria-expanded", !userMenu.classList.contains("hidden"));
+  });
+
+  // Close menu when clicking outside
+  document.addEventListener("click", (e)=>{
+    if (!userMenu.contains(e.target) && !userBtn.contains(e.target)){
+      userMenu.classList.add("hidden");
+      userBtn.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  /* -----------------------------
+     INIT
+  ----------------------------- */
+  function init(){
+    // Default: pada layar kecil, sembunyikan sidebar
+    if (window.innerWidth < 900){
+      document.body.classList.add("sidebar-hidden");
+    }
+    // Render rute awal (dari hash bila ada)
+    const initialRoute = (location.hash || "#dashboard").replace("#","");
+    go(initialRoute);
+  }
+
+  window.addEventListener("resize", ()=>{
+    // Tidak mengubah state pada resize, biar user yang kontrol via tombol.
+  });
+
+  init();
+})();
+</script>
+</body>
+</html>
