@@ -658,11 +658,3 @@
     userMenu.classList.toggle("hidden");
     userBtn.setAttribute("aria-expanded", !userMenu.classList.contains("hidden"));
   });
-
-  // Close menu when clicking outside
-  document.addEventListener("click", (e)=>{
-    if (!userMenu.contains(e.target) && !userBtn.contains(e.target)){
-      userMenu.classList.add("hidden");
-      userBtn.setAttribute("aria-expanded", "false");
-    }
-  });
