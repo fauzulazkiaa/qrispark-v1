@@ -653,8 +653,4 @@
   /* -----------------------------
      TOGGLE USER MENU
   ----------------------------- */
-  userBtn.addEventListener("click", (e)=>{
-    e.stopPropagation();
-    userMenu.classList.toggle("hidden");
-    userBtn.setAttribute("aria-expanded", !userMenu.classList.contains("hidden"));
-  });
+  \
