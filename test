@@ -633,12 +633,3 @@
     history.replaceState({route}, "", "#"+route); // hash untuk bookmark sederhana
   }
 
-  /* -----------------------------
-     EVENT: NAV CLICK
-  ----------------------------- */
-  nav.addEventListener("click", (e)=>{
-    const btn = e.target.closest(".nav-btn");
-    if(!btn) return;
-    const route = btn.getAttribute("data-route");
-    go(route);
-  });
