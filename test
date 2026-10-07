@@ -629,7 +629,3 @@
     // Hapus query string dari URL setelah data diproses untuk mencegah duplikasi saat refresh
     if (history.replaceState) {
         history.replaceState({route}, "", "#"+route);
-    }
-    history.replaceState({route}, "", "#"+route); // hash untuk bookmark sederhana
-  }
-
