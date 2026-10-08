@@ -625,7 +625,4 @@
     routes.destroyChart(); // Pastikan chart lama dihancurkan sebelum pindah halaman
     const fn = routes[route] || routes.dashboard;
     fn();
-    setActive(route);
-    // Hapus query string dari URL setelah data diproses untuk mencegah duplikasi saat refresh
-    if (history.replaceState) {
-        history.replaceState({route}, "", "#"+route);
+    
